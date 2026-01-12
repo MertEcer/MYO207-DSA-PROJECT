@@ -3,12 +3,12 @@
 // https://www.btkakademi.gov.tr/portal/certificate/validate?certificateId=WJ1SkNaG46
 #include <stdio.h>
 
-#define N 7
-
-void dizi_yazdir(int dizi[], int bas_ind, int son_ind) {
-	for (int i = bas_ind; i <= son_ind; i++) {
-		printf("%d ", dizi[i]);
+void dizi_yazdir(int dizi[], int BOYUT) {
+	int i;
+	for (i=0; i<BOYUT; i++) {
+		printf("%3d", dizi[i]);
 	}
+	printf("\n");
 }
 
 void takas(int *ap, int *bp) {
@@ -17,105 +17,67 @@ void takas(int *ap, int *bp) {
 	*bp = gecici;
 }
 
-int medyan_indis_hesapla(int dizi[], int bas_ind, int son_ind) {
-	int orta_ind = (bas_ind + son_ind) / 2;
-	int a = dizi[bas_ind], b = dizi[orta_ind], c = dizi[son_ind];
+void baloncuk_sirala(int dizi[], int BOYUT) {
+	int i, j;
+	int takas_oldu;
 	
-	if (((a<c) && (c<b)) || ((b<c) && (c<a))) {
-		return son_ind;
+	for (i=1; i<BOYUT; i++) { 
+		takas_oldu = 0;
+		for (j=0; j<BOYUT-1; j++) {
+			if (dizi[j] > dizi[j+1]) {
+				takas(dizi+j , dizi+j+1);
+				takas_oldu = 1;
+			}
+		}
+		printf("iter.%2d: ", i);
+		dizi_yazdir(dizi, BOYUT);
+		if (takas_oldu == 0) {
+			break;
+		}
 	}
-	else if (((a<b) && (b<c)) || ((c<b) && (b<a))) {
+}
+
+int ikili_arama(int dizi[], int BOYUT, int search, int ilk_ind, int son_ind) {
+	int orta_ind = (ilk_ind + son_ind) / 2;
+	
+	if (search == dizi[orta_ind]) {
 		return orta_ind;
 	}
-	else if (((b<a) && (a<c)) || ((c<a) && (a<b))) {
-		return bas_ind;
+	else if (search > dizi[orta_ind] && (son_ind-ilk_ind) > 0 ) {
+		return ikili_arama(dizi, BOYUT, search, orta_ind+1, son_ind);
+	}
+	else if (search < dizi[orta_ind] && (son_ind-ilk_ind) > 0) {
+		return ikili_arama(dizi, BOYUT, search, 0, orta_ind-1);
 	}
 	else {
-		return orta_ind;
+		return -1;
 	}
-}
-
-int bolumleme(int dizi[], int bas_ind, int son_ind) {
-	int med_ind = medyan_indis_hesapla(dizi, bas_ind, son_ind);
-	int pivot = dizi[med_ind];
-	int i = bas_ind, j = son_ind;
-	
-	printf("\n (pivot : %d)", pivot);
-	
-	while (i <= j) {
-		while (dizi[i] < pivot) {
-			i++;
-		}
-		while (dizi[j] > pivot) {
-			j--;
-		}
-		
-		if (i <= j) {
-			takas(dizi+i, dizi+j);
-			i++; 
-			j--;
-			
-			printf("\n");
-			dizi_yazdir(dizi, 0, N-1);
-		}
-	}
-	return i; 
-}
-
-void hizli_sirala(int dizi[], int bas_ind, int son_ind) {
-	if (bas_ind < son_ind) {
-		int konum = bolumleme(dizi, bas_ind, son_ind);
-		printf(" ----> [ ");
-		dizi_yazdir(dizi, bas_ind, konum-1);
-		printf("] ve [");
-		dizi_yazdir(dizi, konum, son_ind);
-		printf("]");
-		
-		if (bas_ind < konum - 1) {
-			hizli_sirala(dizi, bas_ind, konum - 1);
-		}
-		if (son_ind > konum) {
-			hizli_sirala(dizi, konum, son_ind);
-		}
-	}
-}
-
-int ikili_arama(int dizi[], int bas_ind, int son_ind, int aranan) {
-	while (bas_ind <= son_ind) {
-		int orta_ind = (bas_ind + son_ind) / 2;
-		
-		if (dizi[orta_ind] == aranan) {
-			return orta_ind;
-		}
-		
-		if (dizi[orta_ind] < aranan) {
-			bas_ind = orta_ind + 1;
-		}
-		else {
-			son_ind = orta_ind - 1;
-		}
-	}
-	return -1;
 }
 
 int main() {
-	int A[] = {3, 1, 6, 5, 8, 2, 4};
-	int aranan = 5;
+	int A[] = {98, 41, 60, 58, 8, 5, 48, 15, 72, 69, 52, 3};
+	int N = sizeof(A) / sizeof(A[0]);
 	
+	printf("--- SIRALAMA ISLEMI ---\n");
+	dizi_yazdir(A, N);
+	baloncuk_sirala(A, N);
+	dizi_yazdir(A, N);
 	printf("\n");
-	dizi_yazdir(A, 0, N-1);
+
+	int aranan, sonuc;
 	
-	hizli_sirala(A, 0, N-1);  
+	printf("--- ARAMA ISLEMI ---\n");
+	printf("Aramak istediginiz deger: ");
+	scanf("%d", &aranan);
 	
-	printf("\n");
-	dizi_yazdir(A, 0, N-1);	
+	sonuc = ikili_arama(A, N, aranan, 0, N-1);
 	
-	int sonuc = ikili_arama(A, 0, N-1, aranan);
-	
-	if (sonuc != -1)
-		printf("\n\nAranan sayi %d, %d. indiste bulundu.", aranan, sonuc);
-	else
-		printf("\n\nSayi bulunamadi.");
-	
+	if (sonuc == -1) {
+		printf("Aradiginiz deger %d, dizide bulunamadi!\n", aranan);
+	}
+	else {
+		printf("Aradiginiz deger %d, dizinin %d. indisinde bulundu!\n", aranan, sonuc);
+	}
+		
 	return 0;
 }
